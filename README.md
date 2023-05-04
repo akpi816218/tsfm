@@ -20,10 +20,6 @@ Found in the root of your project, it should follow the following format:
 	author: '@yourgithubusername',
 	title: 'project-title',
 	description: 'This is a blah blah blah...',
-	mainlang: [
-		'javascript',
-		'python',
-		'typescript'
-	]
+	mainlang: 'typescript' // | 'javascript' | 'python' | 'cplusplus'
 }
 ```
