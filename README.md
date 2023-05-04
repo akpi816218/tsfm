@@ -4,6 +4,8 @@ The May 2023 Hackazebrathon!
 
 ## New hackazebrathoners
 
+**All contestants must be registered before May 10, 2023 12:00AM PST.** Use the process described below.
+
 Here are a couple of steps to get you started:
 
 1. Fork this repository.
