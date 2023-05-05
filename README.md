@@ -17,11 +17,11 @@ Here are a couple of steps to get you started:
 
 Found in the root of your project, it should follow the following format:
 
-```json5
+```jsonc
 {
-	author: '@yourgithubusername',
-	title: 'project-title',
-	description: 'This is a blah blah blah...',
-	mainlang: 'typescript' // | 'javascript' | 'python' | 'cplusplus'
+	"author": "@yourgithubusername",
+	"title": "project-title",
+	"description": "This is a blah blah blah...",
+	"mainlang": "typescript" // | 'javascript' | 'python' | 'cplusplus'
 }
 ```
