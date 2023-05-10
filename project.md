@@ -6,6 +6,7 @@
 		"type": "cli-tool",
 		"description": "A file manager (just like those found on modern operating systems), but with a text-based UI.",
 		"allowedlangs": [
+			"bash",
 			"cplusplus",
 			"javascript",
 			"python",
