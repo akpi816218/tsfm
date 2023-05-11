@@ -1,5 +1,34 @@
 #!/usr/bin/env node
 
+// builtin
+import { argv, cwd, stdout } from 'process';
+// npmjs.com/package/ansi-colors
+import ansiColors from 'ansi-colors';
+const {
+	blueBright,
+	bold,
+	cyanBright,
+	greenBright,
+	redBright,
+	underline,
+	unstyle,
+	yellowBright
+} = ansiColors;
+
+// Check if help flag is present
+if (argv.length > 2) {
+	stdout.write(
+		`${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
+			'Use arrow keys or WASD to navigate.'
+		)}\n${greenBright(
+			'C-c, C-d, C-q, C-w, q, or escape to quit.'
+		)}\n${blueBright(
+			'Navigating into linked directories is not supported at this time.'
+		)}\n`
+	);
+	process.exit(0);
+}
+
 // npmjs.com/package/blessed
 import blessed from 'blessed';
 const { list, screen } = blessed;
@@ -7,11 +36,6 @@ const { list, screen } = blessed;
 import { accessSync } from 'fs';
 // builtin
 import { constants as fsConst, readdir } from 'fs/promises';
-// builtin
-import { cwd, stdout } from 'process';
-// npmjs.com/package/ansi-colors
-import ansiColors from 'ansi-colors';
-const { blueBright, bold, cyanBright, unstyle, yellowBright } = ansiColors;
 
 // global variables
 let currentFiles: string[] = [],
