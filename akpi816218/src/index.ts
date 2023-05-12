@@ -15,6 +15,12 @@ const {
 	yellowBright
 } = ansiColors;
 
+// nothing to do here...
+if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
+	stdout.write(`CDC: Central Defecation Center`);
+	process.exit(0);
+}
+
 // Check if help flag is present
 if (argv.length > 2) {
 	stdout.write(
