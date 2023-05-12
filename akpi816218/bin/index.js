@@ -3,23 +3,34 @@
 import { argv, cwd, stdout } from 'process';
 // npmjs.com/package/ansi-colors
 import ansiColors from 'ansi-colors';
-const { blueBright, bold, cyanBright, greenBright, redBright, underline, unstyle, yellowBright } = ansiColors;
+const { blueBright, bold, cyanBright, greenBright, magentaBright, redBright, underline, yellowBright } = ansiColors;
+// nothing to do here...
+if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
+    stdout.write(`CDC: Central Defecation Center\n`);
+    process.exit(0);
+}
+const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright('Navigating into linked directories is not supported at this time.')}\n`;
 // Check if help flag is present
 if (argv.length > 2) {
-    stdout.write(`${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright('Navigating into linked directories is not supported at this time.')}\n`);
+    stdout.write(helpText);
     process.exit(0);
 }
 // npmjs.com/package/blessed
 import blessed from 'blessed';
-const { list, screen } = blessed;
+const { box, list, screen } = blessed;
 // builtin
 import { accessSync } from 'fs';
 // builtin
 import { constants as fsConst, readdir } from 'fs/promises';
 // global variables
-let currentFiles = [], selectedFile = 0, dir = cwd();
-// initialize first-tim constants
-const firstDir = cwd();
+const State = {
+    currentFiles: new Array(),
+    currentFileNames: new Array(),
+    selectedFile: 0,
+    dir: cwd(),
+    firstDir: cwd(),
+    inHelp: false
+};
 // check if file is executable
 function isExec(p) {
     let r;
@@ -36,17 +47,27 @@ function isExec(p) {
 const win = screen({ smartCSR: true });
 win.title = 'tsfm';
 // create main container (blessed list)
-const container = list({
+const listContainer = list({
     top: 'center',
     left: 'center',
     width: '100%',
     height: '100%',
-    content: 'Loading...',
+    content: 'Whoopsy! Something went wrong. Try quitting and restarting the program.',
     border: 'line'
 });
-win.append(container);
+win.append(listContainer);
 // render screen with current directory
 renderDir();
+const boxContainer = box({
+    top: 'center',
+    left: 'center',
+    width: '100%',
+    height: '100%',
+    content: helpText,
+    border: 'line',
+    hidden: true
+});
+win.append(boxContainer);
 // key event handlers
 win.key('w', upHandler);
 win.key('a', leftHandler);
@@ -56,19 +77,37 @@ win.key('up', upHandler);
 win.key('down', downHandler);
 win.key('left', leftHandler);
 win.key('right', rightHandler);
-win.key('h', homeHandler);
-win.key('home', homeHandler);
+// help key handler
+win.key('h', helpHandler);
 // resize event handler
 win.on('resize', () => {
-    container.width = '100%';
-    container.height = '100%';
+    listContainer.width = '100%';
+    listContainer.height = '100%';
+    boxContainer.width = '100%';
+    boxContainer.height = '100%';
 });
 // quit handlers
 win.key(['escape', 'q', 'C-c', 'C-d', 'C-q', 'C-w'], () => win.destroy());
 // render screen with current directory
 async function renderDir() {
     // get current directory contents with type
-    currentFiles = (await readdir(dir, { withFileTypes: true })).map((file) => {
+    State.currentFiles = await readdir(State.dir, { withFileTypes: true });
+    if (State.currentFiles.length == 0) {
+        listContainer.setItems([
+            State.dir,
+            'Press h for help.',
+            '',
+            redBright('You find yourself in a very strange place...'),
+            yellowBright('There are no files to be seen, nor directories.'),
+            greenBright('You are utterly alone.'),
+            blueBright('You marvel at the lack of color.'),
+            cyanBright('You wonder if you are dreaming.'),
+            magentaBright('You are not dreaming.')
+        ]);
+        win.render();
+        return;
+    }
+    State.currentFileNames = State.currentFiles.map((file) => {
         if (file.isDirectory())
             return blueBright(`${file.name}/`);
         if (file.isSymbolicLink())
@@ -82,57 +121,75 @@ async function renderDir() {
 }
 async function reRender() {
     // set container content
-    container.setItems(currentFiles.map((file, i) => i == selectedFile ? bold(`> ${file}`) : `  ${file}`));
+    listContainer.setItems(State.currentFileNames.map((file, i) => i == State.selectedFile ? bold(`> ${file}`) : `  ${file}`));
     // select file for "scrolling"
-    container.select(selectedFile);
+    listContainer.select(State.selectedFile);
     // render screen
     win.render();
 }
 // key event handlers
 async function upHandler() {
     // change selected file index
-    if (selectedFile > 0)
-        selectedFile--;
+    if (State.selectedFile > 0)
+        State.selectedFile--;
     else
-        selectedFile = currentFiles.length - 1;
+        State.selectedFile = State.currentFileNames.length - 1;
     // re-render screen
     await reRender();
 }
 async function downHandler() {
-    if (selectedFile < currentFiles.length - 1)
-        selectedFile++;
+    if (State.selectedFile < State.currentFileNames.length - 1)
+        State.selectedFile++;
     else
-        selectedFile = 0;
+        State.selectedFile = 0;
     // re-render screen
     await reRender();
 }
 async function leftHandler() {
     // system bell character
-    if (dir == '/')
+    if (State.dir == '/')
         stdout.write('\u0007');
     else {
-        dir = dir.split('/').slice(0, -1).join('/');
-        if (dir == '')
-            dir = '/';
-        selectedFile = 0;
+        State.dir = State.dir.split('/').slice(0, -1).join('/');
+        if (State.dir == '')
+            State.dir = '/';
+        State.selectedFile = 0;
         // re-render screen
         await renderDir();
     }
 }
 async function rightHandler() {
-    const activeDir = unstyle(currentFiles[selectedFile]);
-    if (!activeDir.endsWith('/'))
-        stdout.write('\u0007');
-    else {
+    const selected = State.currentFiles[State.selectedFile];
+    if (selected.isDirectory()) {
         // change directory
-        dir += `/${activeDir.slice(0, -1)}`;
-        selectedFile = 0;
+        State.dir += `/${State.currentFiles[State.selectedFile].name}`;
+        State.selectedFile = 0;
         // re-render screen
         await renderDir();
     }
+    else if (selected.isFile()) {
+        listContainer.hide();
+    }
+}
+async function helpHandler() {
+    State.inHelp = !State.inHelp;
+    if (State.inHelp) {
+        State.firstDir = State.dir;
+        listContainer.hide();
+        boxContainer.show();
+    }
+    else {
+        boxContainer.hide();
+        listContainer.show();
+        State.dir = State.firstDir;
+        State.selectedFile = 0;
+        renderDir();
+    }
+    // re-render screen
+    await reRender();
 }
 async function homeHandler() {
-    dir = firstDir;
+    State.dir = State.firstDir;
     // re-render screen
     await renderDir();
 }
