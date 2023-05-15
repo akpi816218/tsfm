@@ -1,6 +1,6 @@
 {
 	"name": "tsfm",
-	"version": "1.0.0-beta",
+	"version": "1.1.0-beta",
 	"description": "A light TUI file manager written in TypeScript",
 	"main": "src/index.ts",
 	"type": "module",
