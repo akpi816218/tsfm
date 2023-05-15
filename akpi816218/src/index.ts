@@ -39,7 +39,9 @@ const { box, list, screen } = blessed;
 // builtin
 import { accessSync, Dirent } from 'fs';
 // builtin
-import { constants as fsConst, readdir } from 'fs/promises';
+import { constants as fsConst, readdir, readFile } from 'fs/promises';
+//
+import { highlight } from 'cli-highlight';
 
 // global variables
 const State = {
@@ -48,7 +50,8 @@ const State = {
 	selectedFile: 0,
 	dir: cwd(),
 	firstDir: cwd(),
-	inHelp: false
+	inHelp: false,
+	inFile: false
 };
 
 // check if file is executable
@@ -89,7 +92,15 @@ const boxContainer = box({
 	height: '100%',
 	content: helpText,
 	border: 'line',
-	hidden: true
+	hidden: true,
+	scrollable: true,
+	alwaysScroll: true,
+	scrollbar: {
+		track: {
+			bg: 'cyan'
+		},
+		ch: ' '
+	}
 });
 win.append(boxContainer);
 
@@ -116,18 +127,20 @@ win.key(['escape', 'q', 'C-c', 'C-d', 'C-q', 'C-w'], () => win.destroy());
 
 // render screen with current directory
 async function renderDir() {
+	State.selectedFile = 0;
 	// get current directory contents with type
 	State.currentFiles = await readdir(State.dir, { withFileTypes: true });
 	if (State.currentFiles.length == 0) {
 		listContainer.setItems([
 			State.dir,
+			'  ^ You are definitely not here, why would you be?',
 			'Press h for help.',
 			'',
 			redBright('You find yourself in a very strange place...'),
 			yellowBright('There are no files to be seen, nor directories.'),
 			greenBright('You are utterly alone.'),
-			blueBright('You marvel at the lack of color.'),
-			cyanBright('You wonder if you are dreaming.'),
+			cyanBright('You marvel at the lack of color.'),
+			blueBright('You wonder if you are dreaming.'),
 			magentaBright('You are not dreaming.')
 		]);
 		win.render();
@@ -158,6 +171,12 @@ async function reRender() {
 
 // key event handlers
 async function upHandler() {
+	if (State.inHelp) return;
+	if (State.inFile) {
+		boxContainer.scroll(-1);
+		win.render();
+		return;
+	}
 	// change selected file index
 	if (State.selectedFile > 0) State.selectedFile--;
 	else State.selectedFile = State.currentFileNames.length - 1;
@@ -165,6 +184,12 @@ async function upHandler() {
 	await reRender();
 }
 async function downHandler() {
+	if (State.inHelp) return;
+	if (State.inFile) {
+		boxContainer.scroll(1);
+		win.render();
+		return;
+	}
 	if (State.selectedFile < State.currentFileNames.length - 1)
 		State.selectedFile++;
 	else State.selectedFile = 0;
@@ -172,26 +197,46 @@ async function downHandler() {
 	await reRender();
 }
 async function leftHandler() {
+	if (State.inHelp) return;
+	if (State.inFile) {
+		boxContainer.hide();
+		listContainer.show();
+		win.render();
+		State.inFile = false;
+		return;
+	}
 	// system bell character
 	if (State.dir == '/') stdout.write('\u0007');
 	else {
 		State.dir = State.dir.split('/').slice(0, -1).join('/');
 		if (State.dir == '') State.dir = '/';
-		State.selectedFile = 0;
 		// re-render screen
 		await renderDir();
 	}
 }
 async function rightHandler() {
+	if (State.inHelp || State.inFile) return;
 	const selected = State.currentFiles[State.selectedFile];
 	if (selected.isDirectory()) {
 		// change directory
 		State.dir += `/${State.currentFiles[State.selectedFile].name}`;
-		State.selectedFile = 0;
+		if (State.dir.slice(0, 2) == '//') State.dir = State.dir.slice(1);
 		// re-render screen
 		await renderDir();
 	} else if (selected.isFile()) {
+		State.inFile = true;
+		boxContainer.setContent(
+			highlight(
+				(
+					await readFile(
+						`${State.dir}/${State.currentFiles[State.selectedFile].name}`
+					)
+				).toString()
+			)
+		);
 		listContainer.hide();
+		boxContainer.show();
+		win.render();
 	}
 }
 async function helpHandler() {
@@ -211,6 +256,7 @@ async function helpHandler() {
 	await reRender();
 }
 async function homeHandler() {
+	if (State.inHelp) return;
 	State.dir = State.firstDir;
 	// re-render screen
 	await renderDir();

@@ -16,7 +16,7 @@
 	},
 	"dependencies": {
 		"ansi-colors": "^4.1.3",
-		"ansi-ui": "^1.0.0",
-		"blessed": "^0.1.81"
+		"blessed": "^0.1.81",
+		"cli-highlight": "^2.1.11"
 	}
 }
