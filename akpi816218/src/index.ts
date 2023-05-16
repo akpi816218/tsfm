@@ -2,7 +2,7 @@
 
 // builtin
 import { argv, cwd, stdout } from 'process';
-// npmjs.com/package/ansi-colors
+// https://npmjs.com/package/ansi-colors
 import ansiColors from 'ansi-colors';
 const {
 	blueBright,
@@ -14,10 +14,30 @@ const {
 	underline,
 	yellowBright
 } = ansiColors;
+function orangeBright(text: string): string {
+	return redBright(yellowBright(text));
+}
+function purpleBright(text: string): string {
+	return redBright(magentaBright(text));
+}
 
 // nothing to do here...
 if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
-	stdout.write(`CDC: Central Defecation Center\n`);
+	stdout.write(
+		`${redBright('C')}${orangeBright('D')}${yellowBright('C')}${greenBright(
+			':'
+		)} ${blueBright('C')}${purpleBright('e')}${redBright('n')}${orangeBright(
+			't'
+		)}${yellowBright('r')}${greenBright('a')}${blueBright('l')} ${purpleBright(
+			'D'
+		)}${redBright('e')}${orangeBright('f')}${yellowBright('e')}${greenBright(
+			'c'
+		)}${blueBright('a')}${purpleBright('t')}${redBright('i')}${orangeBright(
+			'o'
+		)}${yellowBright('n')} ${greenBright('C')}${blueBright('e')}${purpleBright(
+			'n'
+		)}${redBright('t')}${orangeBright('e')}${yellowBright('r')}\n`
+	);
 	process.exit(0);
 }
 
@@ -28,20 +48,25 @@ const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
 )}\n`;
 
 // Check if help flag is present
-if (argv.length > 2) {
+if (argv.length > 2 && argv[2].toLowerCase() == 'help') {
 	stdout.write(helpText);
 	process.exit(0);
 }
 
-// npmjs.com/package/blessed
+// https://npmjs.com/package/blessed
 import blessed from 'blessed';
 const { box, list, screen } = blessed;
 // builtin
-import { accessSync, Dirent } from 'fs';
+import { accessSync, Dirent, PathLike, readdirSync } from 'fs';
 // builtin
-import { constants as fsConst, readdir, readFile } from 'fs/promises';
-//
+import { join, resolve } from 'path';
+// builtin
+import { access, constants, readdir, readFile } from 'fs/promises';
+// https://npmjs.com/package/cli-highlight
 import { highlight } from 'cli-highlight';
+// My own package: @feces-cli/internals
+// https://npmjs.com/package/@feces-cli/internals
+import { commandHandlers } from '@feces-cli/internals';
 
 // global variables
 const State = {
@@ -51,19 +76,33 @@ const State = {
 	dir: cwd(),
 	firstDir: cwd(),
 	inHelp: false,
-	inFile: false
+	inFile: false,
+	inModal: false
 };
 
-// check if file is executable
-function isExec(p: string) {
-	let r;
+if (argv.length === 3) {
 	try {
-		accessSync(p, fsConst.X_OK);
-		r = true;
-	} catch (e) {
-		r = false;
+		accessSync(argv[2], constants.F_OK);
+		readdirSync(argv[2]);
+		State.dir = resolve(argv[2]);
+	} catch {
+		stdout.write(
+			redBright(
+				`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again.\n`
+			)
+		);
+		process.exit(1);
 	}
-	return r;
+}
+
+// check if file is executable
+function isExec(path: PathLike) {
+	try {
+		accessSync(path, constants.X_OK);
+		return true;
+	} catch (err) {
+		return false;
+	}
 }
 
 // create blessed screen
@@ -104,6 +143,19 @@ const boxContainer = box({
 });
 win.append(boxContainer);
 
+const modalContainer = box({
+	top: 'center',
+	left: 'center',
+	width: '50%',
+	height: '50%',
+	content: '...',
+	border: 'line',
+	hidden: true,
+	valign: 'middle',
+	align: 'center'
+});
+win.append(modalContainer);
+
 // key event handlers
 win.key('w', upHandler);
 win.key('a', leftHandler);
@@ -115,6 +167,8 @@ win.key('left', leftHandler);
 win.key('right', rightHandler);
 // help key handler
 win.key('h', helpHandler);
+// feces key handlers
+win.key('p', plopHandler);
 // resize event handler
 win.on('resize', () => {
 	listContainer.width = '100%';
@@ -149,7 +203,8 @@ async function renderDir() {
 	State.currentFileNames = State.currentFiles.map((file) => {
 		if (file.isDirectory()) return blueBright(`${file.name}/`);
 		if (file.isSymbolicLink()) return cyanBright(`${file.name}@`);
-		if (isExec(file.name)) return yellowBright(`${file.name}*`);
+		if (isExec(resolve(join(State.dir, file.name))))
+			return yellowBright(`${file.name}*`);
 		return file.name;
 	});
 	// render screen
@@ -171,7 +226,7 @@ async function reRender() {
 
 // key event handlers
 async function upHandler() {
-	if (State.inHelp) return;
+	if (State.inHelp || State.inModal) return;
 	if (State.inFile) {
 		boxContainer.scroll(-1);
 		win.render();
@@ -184,7 +239,7 @@ async function upHandler() {
 	await reRender();
 }
 async function downHandler() {
-	if (State.inHelp) return;
+	if (State.inHelp || State.inModal) return;
 	if (State.inFile) {
 		boxContainer.scroll(1);
 		win.render();
@@ -197,7 +252,7 @@ async function downHandler() {
 	await reRender();
 }
 async function leftHandler() {
-	if (State.inHelp) return;
+	if (State.inHelp || State.inModal) return;
 	if (State.inFile) {
 		boxContainer.hide();
 		listContainer.show();
@@ -215,9 +270,9 @@ async function leftHandler() {
 	}
 }
 async function rightHandler() {
-	if (State.inHelp || State.inFile) return;
+	if (State.inHelp || State.inModal || State.inFile) return;
 	const selected = State.currentFiles[State.selectedFile];
-	if (selected.isDirectory()) {
+	if (selected.isDirectory() || selected.isSymbolicLink()) {
 		// change directory
 		State.dir += `/${State.currentFiles[State.selectedFile].name}`;
 		if (State.dir.slice(0, 2) == '//') State.dir = State.dir.slice(1);
@@ -237,9 +292,42 @@ async function rightHandler() {
 		listContainer.hide();
 		boxContainer.show();
 		win.render();
+	} else if (selected.isSymbolicLink()) {
+		try {
+			// if directory
+			await access(
+				State.dir + `/${State.currentFiles[State.selectedFile].name}`,
+				constants.O_DIRECTORY
+			);
+			// change directory
+			State.dir += `/${State.currentFiles[State.selectedFile].name}`;
+			if (State.dir.slice(0, 2) == '//') State.dir = State.dir.slice(1);
+			// re-render screen
+			await renderDir();
+		} catch {}
+		try {
+			await access(
+				State.dir + `/${State.currentFiles[State.selectedFile].name}`,
+				constants.F_OK
+			);
+			State.inFile = true;
+			boxContainer.setContent(
+				highlight(
+					(
+						await readFile(
+							`${State.dir}/${State.currentFiles[State.selectedFile].name}`
+						)
+					).toString()
+				)
+			);
+			listContainer.hide();
+			boxContainer.show();
+			win.render();
+		} catch {}
 	}
 }
 async function helpHandler() {
+	if (State.inModal) return;
 	State.inHelp = !State.inHelp;
 	if (State.inHelp) {
 		State.firstDir = State.dir;
@@ -253,11 +341,34 @@ async function helpHandler() {
 		renderDir();
 	}
 	// re-render screen
-	await reRender();
+	win.render();
 }
-async function homeHandler() {
-	if (State.inHelp) return;
-	State.dir = State.firstDir;
-	// re-render screen
-	await renderDir();
+
+// feces command handlers
+async function plopHandler() {
+	if (State.inHelp || State.inModal || State.inFile) return;
+	// plop file
+	const filedata = await commandHandlers.plop(
+		State.dir,
+		State.currentFiles[State.selectedFile].name
+	);
+	State.inModal = true;
+	// display modal
+	modalContainer.setContent(
+		yellowBright(
+			`Sucessfully plopped ${
+				filedata.originalPath
+			}!\nThe file can be plunged using \n'feces plunge ${filedata.trashedPath
+				.split('/')
+				.at(-1)}' (assuming you have installed 'feces-cli').`
+		)
+	);
+	modalContainer.show();
+	win.render();
+	// hide modal after 2.5 seconds
+	setTimeout(async () => {
+		modalContainer.hide();
+		State.inModal = false;
+		renderDir();
+	}, 2_500);
 }
