@@ -26,6 +26,7 @@ Found in the root of your project, it should follow the following format:
 	"author": "@yourgithubusername",
 	"title": "project-title",
 	"description": "This is a blah blah blah...",
+	"download": "https://package-manager.com/package/project-title"
 	"mainlang": "bash" // | "cplusplus" | "javascript" | "python" | "typescript"
 }
 ```
