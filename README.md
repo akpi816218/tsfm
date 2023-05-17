@@ -4,6 +4,8 @@ The May 2023 Hackazebrathon!
 
 Final PRs must be *created* ***before* June 1, 2023 at 12:00 AM PST.**
 
+Whenever you create a PR, add the label `no-submit` if it is not ready for submission, and the latest PR with the `submission-ok` label will be used. If it is ready for submission, add the `submission-ok` label. If there are multiple PRs with this label, the latest will be used.
+
 ## New hackazebrathoners
 
 **All contestants must be registered before May 10, 2023 at 12:00 AM PST.** Use the process described below.
