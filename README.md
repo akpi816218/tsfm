@@ -2,7 +2,7 @@
 
 The May 2023 Hackazebrathon!
 
-Final PRs must be *created **before* June 1, 2023 at 12:00 AM PST.**
+Final PRs must be *created* ***before* June 1, 2023 at 12:00 AM PST.**
 
 ## New hackazebrathoners
 
