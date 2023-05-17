@@ -1,0 +1,24 @@
+{
+	"name": "tsfm",
+	"version": "2.0.0",
+	"description": "A light TUI file manager written in TypeScript, with a focus on speed and ease of use. Integrated with feces-cli using @feces-cli/internals to enable quick file trashing.",
+	"main": "src/index.ts",
+	"type": "module",
+	"bin": "bin/index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Akhil Pillai",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/blessed": "^0.1.21",
+		"@types/mv": "^2.1.2",
+		"typescript": "^5.0.4"
+	},
+	"dependencies": {
+		"@feces-cli/internals": "^1.4.1",
+		"ansi-colors": "^4.1.3",
+		"blessed": "^0.1.81",
+		"cli-highlight": "^2.1.11"
+	}
+}
