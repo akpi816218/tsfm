@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 // builtin
 import { argv, cwd, stdout } from 'process';
+if (argv.length > 2 &&
+    (argv[2].toLowerCase() == 'version' ||
+        argv[2].toLowerCase() == 'v' ||
+        argv[2].toLowerCase() == '-v' ||
+        argv[2].toLowerCase() == '--version')) {
+    stdout.write('tsfm version 2.0.0\n');
+    process.exit(0);
+}
 // https://npmjs.com/package/ansi-colors
 import ansiColors from 'ansi-colors';
 const { blueBright, bold, cyanBright, greenBright, magentaBright, redBright, underline, yellowBright } = ansiColors;
@@ -15,7 +23,7 @@ if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
     stdout.write(`${redBright('C')}${orangeBright('D')}${yellowBright('C')}${greenBright(':')} ${blueBright('C')}${purpleBright('e')}${redBright('n')}${orangeBright('t')}${yellowBright('r')}${greenBright('a')}${blueBright('l')} ${purpleBright('D')}${redBright('e')}${orangeBright('f')}${yellowBright('e')}${greenBright('c')}${blueBright('a')}${purpleBright('t')}${redBright('i')}${orangeBright('o')}${yellowBright('n')} ${greenBright('C')}${blueBright('e')}${purpleBright('n')}${redBright('t')}${orangeBright('e')}${yellowBright('r')}\n`);
     process.exit(0);
 }
-const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright('Navigating into linked directories is not supported at this time.')}\n`;
+const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys, hjkl, or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright("Press '?' of '/'t for help.")}\n`;
 // Check if help flag is present
 if (argv.length > 2 && argv[2].toLowerCase() == 'help') {
     stdout.write(helpText);
@@ -121,8 +129,13 @@ win.key('up', upHandler);
 win.key('down', downHandler);
 win.key('left', leftHandler);
 win.key('right', rightHandler);
+win.key('h', leftHandler);
+win.key('j', upHandler);
+win.key('k', downHandler);
+win.key('l', rightHandler);
 // help key handler
-win.key('h', helpHandler);
+win.key('/', helpHandler);
+win.key('?', helpHandler);
 // feces key handlers
 win.key('p', plopHandler);
 // resize event handler
@@ -143,7 +156,7 @@ async function renderDir() {
         listContainer.setItems([
             State.dir,
             '  ^ You are definitely not here, why would you be?',
-            'Press h for help.',
+            "Press '?' or '/' for help.",
             '',
             redBright('You find yourself in a very strange place...'),
             yellowBright('There are no files to be seen, nor directories.'),
