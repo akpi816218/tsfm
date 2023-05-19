@@ -56,7 +56,7 @@ if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
 const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
 	'Use arrow keys, hjkl, or WASD to navigate.'
 )}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright(
-	"Press '?' of '/'t for help."
+	"Press '?' of '/' for help."
 )}\n`;
 
 // Check if help flag is present
