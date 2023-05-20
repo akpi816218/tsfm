@@ -18,7 +18,7 @@ For help, run `tsfm help` or press '/' or '?' while in the program.
 
 ## Contributing
 
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) before submitting a pull request.
+Contributions are welcome! ~~Please read the [contributing guidelines](CONTRIBUTING.md) before submitting a pull request.~~ I still have to add contributing guidelines.
 
 ## License
 
