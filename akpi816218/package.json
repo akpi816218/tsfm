@@ -1,6 +1,6 @@
 {
 	"name": "tsfm",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"description": "A light TUI file manager written in TypeScript, with a focus on speed and ease of use. Integrated with feces-cli using @feces-cli/internals to enable quick file trashing.",
 	"main": "src/index.ts",
 	"type": "module",

@@ -182,7 +182,12 @@ async function renderDir() {
 }
 async function reRender() {
     // set container content
-    listContainer.setItems(State.currentFileNames.map((file, i) => i == State.selectedFile ? bold(`> ${file}`) : `  ${file}`));
+    listContainer.setItems(State.currentFileNames.map((file, index) => {
+        if (index === State.selectedFile)
+            return bold(underline(`> ${file}`));
+        else
+            return `  ${file}`;
+    }));
     // select file for "scrolling"
     listContainer.select(State.selectedFile);
     // render screen
