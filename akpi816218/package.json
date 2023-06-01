@@ -11,12 +11,11 @@
 	"author": "Akhil Pillai",
 	"license": "MIT",
 	"devDependencies": {
-		"@types/blessed": "^0.1.21",
-		"@types/mv": "^2.1.2",
+		"@types/blessed": "^0.1.22",
 		"typescript": "^5.0.4"
 	},
 	"dependencies": {
-		"@feces-cli/internals": "^1.4.1",
+		"@feces-cli/internals": "^1.5.2",
 		"ansi-colors": "^4.1.3",
 		"blessed": "^0.1.81",
 		"cli-highlight": "^2.1.11"

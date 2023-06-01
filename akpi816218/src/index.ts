@@ -56,7 +56,7 @@ if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
 const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
 	'Use arrow keys, hjkl, or WASD to navigate.'
 )}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright(
-	"Press '?' of '/' for help."
+	"Press '?' or '/' for help."
 )}\n`;
 
 // Check if help flag is present
@@ -81,11 +81,22 @@ import { highlight } from 'cli-highlight';
 import { commandHandlers } from '@feces-cli/internals';
 
 // global variables
-const State = {
+const State: {
+	currentFiles: Dirent[];
+	currentFileNames: string[];
+	selectedFile: number;
+	dir: string;
+	dirIndex: { [key: string]: number };
+	firstDir: string;
+	inHelp: boolean;
+	inFile: boolean;
+	inModal: boolean;
+} = {
 	currentFiles: new Array<Dirent>(),
 	currentFileNames: new Array<string>(),
 	selectedFile: 0,
 	dir: cwd(),
+	dirIndex: {},
 	firstDir: cwd(),
 	inHelp: false,
 	inFile: false,
@@ -100,7 +111,7 @@ if (argv.length === 3) {
 	} catch {
 		stdout.write(
 			redBright(
-				`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again.\n`
+				`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again, or run 'tsfm help' help.\n`
 			)
 		);
 		process.exit(1);
@@ -198,7 +209,7 @@ win.key(['escape', 'q', 'C-c', 'C-d', 'C-q', 'C-w'], () => win.destroy());
 
 // render screen with current directory
 async function renderDir() {
-	State.selectedFile = 0;
+	State.selectedFile = State.dirIndex[State.dir] ?? 0;
 	// get current directory contents with type
 	State.currentFiles = await readdir(State.dir, { withFileTypes: true });
 	if (State.currentFiles.length == 0) {
@@ -232,7 +243,7 @@ async function reRender() {
 	// set container content
 	listContainer.setItems(
 		State.currentFileNames.map((file, index) => {
-			if (index === State.selectedFile) return bold(underline(`> ${file}`));
+			if (index === State.selectedFile) return bold(`> ${file}`);
 			else return `  ${file}`;
 		})
 	);
@@ -281,6 +292,7 @@ async function leftHandler() {
 	// system bell character
 	if (State.dir == '/') stdout.write('\u0007');
 	else {
+		saveDirIndex();
 		State.dir = State.dir.split('/').slice(0, -1).join('/');
 		if (State.dir == '') State.dir = '/';
 		// re-render screen
@@ -291,6 +303,7 @@ async function rightHandler() {
 	if (State.inHelp || State.inModal || State.inFile) return;
 	const selected = State.currentFiles[State.selectedFile];
 	if (selected.isDirectory() || selected.isSymbolicLink()) {
+		saveDirIndex();
 		// change directory
 		State.dir += `/${State.currentFiles[State.selectedFile].name}`;
 		if (State.dir.slice(0, 2) == '//') State.dir = State.dir.slice(1);
@@ -318,6 +331,7 @@ async function rightHandler() {
 				constants.O_DIRECTORY
 			);
 			// change directory
+			saveDirIndex();
 			State.dir += `/${State.currentFiles[State.selectedFile].name}`;
 			if (State.dir.slice(0, 2) == '//') State.dir = State.dir.slice(1);
 			// re-render screen
@@ -389,4 +403,8 @@ async function plopHandler() {
 		State.inModal = false;
 		renderDir();
 	}, 2_500);
+}
+
+function saveDirIndex() {
+	State.dirIndex[State.dir] = State.selectedFile;
 }
