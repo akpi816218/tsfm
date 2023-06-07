@@ -1,13 +1,21 @@
 #!/usr/bin/env node
+// ! Make sure to change the version number in both package.json and src/index.ts
+const version = '2.3.0';
+// https://npmjs.com/package/npm-registry-fetch
+import fetch from 'npm-registry-fetch';
 // builtin
-import { argv, cwd, stdout } from 'process';
-if (argv.length > 2 &&
-    (argv[2].toLowerCase() == 'version' ||
-        argv[2].toLowerCase() == 'v' ||
-        argv[2].toLowerCase() == '-v' ||
-        argv[2].toLowerCase() == '--version')) {
-    stdout.write('tsfm version 2.0.0\n');
-    process.exit(0);
+import { argv, cwd, exit, stdout } from 'process';
+const cmnd = argv.length > 2 ? `${argv[2].toLowerCase()}` : null;
+if (cmnd == 'version' || cmnd == 'v' || cmnd == '-v' || cmnd == '--version') {
+    stdout.write(`Fetching package info from NPM, stand by for up to 5 seconds...\n`);
+    stdout.write(`Local installation is tsfm@${version}\ntsfm@latest version published on NPM: ${(await fetch
+        .json('tsfm', {
+        timeout: 5000
+    })
+        .catch(() => {
+        stdout.write('Failed to fetch version info from NPM') && exit(1);
+    }))['dist-tags'].latest}\n`);
+    exit(0);
 }
 // https://npmjs.com/package/ansi-colors
 import ansiColors from 'ansi-colors';
@@ -19,13 +27,13 @@ function purpleBright(text) {
     return redBright(magentaBright(text));
 }
 // nothing to do here...
-if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
+if (argv.length == 3 && cmnd == 'cdc') {
     stdout.write(`${redBright('C')}${orangeBright('D')}${yellowBright('C')}${greenBright(':')} ${blueBright('C')}${purpleBright('e')}${redBright('n')}${orangeBright('t')}${yellowBright('r')}${greenBright('a')}${blueBright('l')} ${purpleBright('D')}${redBright('e')}${orangeBright('f')}${yellowBright('e')}${greenBright('c')}${blueBright('a')}${purpleBright('t')}${redBright('i')}${orangeBright('o')}${yellowBright('n')} ${greenBright('C')}${blueBright('e')}${purpleBright('n')}${redBright('t')}${orangeBright('e')}${yellowBright('r')}\n`);
     process.exit(0);
 }
-const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys, hjkl, or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright("Press '?' of '/' for help.")}\n`;
+const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys, hjkl, or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright("Press '?' or '/' for help.")}\n${magentaBright("Run 'tsfm help' for help, or 'tsfm -v' for version info.")}\n\ntsfm v${version}\n`;
 // Check if help flag is present
-if (argv.length > 2 && argv[2].toLowerCase() == 'help') {
+if (argv.length > 2 && cmnd == 'help') {
     stdout.write(helpText);
     process.exit(0);
 }
@@ -49,6 +57,7 @@ const State = {
     currentFileNames: new Array(),
     selectedFile: 0,
     dir: cwd(),
+    dirIndex: {},
     firstDir: cwd(),
     inHelp: false,
     inFile: false,
@@ -61,7 +70,7 @@ if (argv.length === 3) {
         State.dir = resolve(argv[2]);
     }
     catch {
-        stdout.write(redBright(`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again.\n`));
+        stdout.write(redBright(`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again, or run 'tsfm help' for help.\n`));
         process.exit(1);
     }
 }
@@ -149,7 +158,7 @@ win.on('resize', () => {
 win.key(['escape', 'q', 'C-c', 'C-d', 'C-q', 'C-w'], () => win.destroy());
 // render screen with current directory
 async function renderDir() {
-    State.selectedFile = 0;
+    State.selectedFile = State.dirIndex[State.dir] ?? 0;
     // get current directory contents with type
     State.currentFiles = await readdir(State.dir, { withFileTypes: true });
     if (State.currentFiles.length == 0) {
@@ -184,7 +193,7 @@ async function reRender() {
     // set container content
     listContainer.setItems(State.currentFileNames.map((file, index) => {
         if (index === State.selectedFile)
-            return bold(underline(`> ${file}`));
+            return bold(`> ${file}`);
         else
             return `  ${file}`;
     }));
@@ -239,6 +248,7 @@ async function leftHandler() {
     if (State.dir == '/')
         stdout.write('\u0007');
     else {
+        saveDirIndex();
         State.dir = State.dir.split('/').slice(0, -1).join('/');
         if (State.dir == '')
             State.dir = '/';
@@ -251,6 +261,7 @@ async function rightHandler() {
         return;
     const selected = State.currentFiles[State.selectedFile];
     if (selected.isDirectory() || selected.isSymbolicLink()) {
+        saveDirIndex();
         // change directory
         State.dir += `/${State.currentFiles[State.selectedFile].name}`;
         if (State.dir.slice(0, 2) == '//')
@@ -270,6 +281,7 @@ async function rightHandler() {
             // if directory
             await access(State.dir + `/${State.currentFiles[State.selectedFile].name}`, constants.O_DIRECTORY);
             // change directory
+            saveDirIndex();
             State.dir += `/${State.currentFiles[State.selectedFile].name}`;
             if (State.dir.slice(0, 2) == '//')
                 State.dir = State.dir.slice(1);
@@ -326,4 +338,7 @@ async function plopHandler() {
         State.inModal = false;
         renderDir();
     }, 2_500);
+}
+function saveDirIndex() {
+    State.dirIndex[State.dir] = State.selectedFile;
 }

@@ -1,17 +1,37 @@
 #!/usr/bin/env node
 
-// builtin
-import { argv, cwd, stdout } from 'process';
+// ! Make sure to change the version number in both package.json and src/index.ts
+const version = '2.3.0' as const;
 
-if (
-	argv.length > 2 &&
-	(argv[2].toLowerCase() == 'version' ||
-		argv[2].toLowerCase() == 'v' ||
-		argv[2].toLowerCase() == '-v' ||
-		argv[2].toLowerCase() == '--version')
-) {
-	stdout.write('tsfm version 2.0.0\n');
-	process.exit(0);
+// https://npmjs.com/package/npm-registry-fetch
+import fetch from 'npm-registry-fetch';
+// builtin
+import { argv, cwd, exit, stdout } from 'process';
+
+const cmnd = argv.length > 2 ? (`${argv[2].toLowerCase()}` as const) : null;
+
+if (cmnd == 'version' || cmnd == 'v' || cmnd == '-v' || cmnd == '--version') {
+	stdout.write(
+		`Fetching package info from NPM, stand by for up to 5 seconds...\n`
+	);
+	stdout.write(
+		`Local installation is tsfm@${version}\ntsfm@latest version published on NPM: ${
+			(
+				(await fetch
+					.json('tsfm', {
+						timeout: 5000
+					})
+					.catch(() => {
+						stdout.write('Failed to fetch version info from NPM') && exit(1);
+					})) as unknown as {
+					'dist-tags': {
+						latest: string;
+					};
+				}
+			)['dist-tags'].latest
+		}\n`
+	);
+	exit(0);
 }
 
 // https://npmjs.com/package/ansi-colors
@@ -34,7 +54,7 @@ function purpleBright(text: string): string {
 }
 
 // nothing to do here...
-if (argv.length == 3 && argv[2].toLowerCase() == 'cdc') {
+if (argv.length == 3 && cmnd == 'cdc') {
 	stdout.write(
 		`${redBright('C')}${orangeBright('D')}${yellowBright('C')}${greenBright(
 			':'
@@ -57,10 +77,12 @@ const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
 	'Use arrow keys, hjkl, or WASD to navigate.'
 )}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright(
 	"Press '?' or '/' for help."
-)}\n`;
+)}\n${magentaBright(
+	"Run 'tsfm help' for help, or 'tsfm -v' for version info."
+)}\n\ntsfm v${version}\n`;
 
 // Check if help flag is present
-if (argv.length > 2 && argv[2].toLowerCase() == 'help') {
+if (argv.length > 2 && cmnd == 'help') {
 	stdout.write(helpText);
 	process.exit(0);
 }
@@ -111,7 +133,7 @@ if (argv.length === 3) {
 	} catch {
 		stdout.write(
 			redBright(
-				`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again, or run 'tsfm help' help.\n`
+				`Whoopsy! '${argv[2]}' is not a directory, does not exist, or cannot be read. Try again, or run 'tsfm help' for help.\n`
 			)
 		);
 		process.exit(1);
