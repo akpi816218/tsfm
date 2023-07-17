@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // ! Make sure to change the version number in both package.json and src/index.ts
-const version = '2.3.0' as const;
+const version = '2.3.2' as const;
 
 // https://npmjs.com/package/npm-registry-fetch
 import fetch from 'npm-registry-fetch';
@@ -22,7 +22,8 @@ if (cmnd == 'version' || cmnd == 'v' || cmnd == '-v' || cmnd == '--version') {
 						timeout: 5000
 					})
 					.catch(() => {
-						stdout.write('Failed to fetch version info from NPM') && exit(1);
+						stdout.write('Failed to fetch version info from NPM\n');
+						exit(1);
 					})) as unknown as {
 					'dist-tags': {
 						latest: string;
@@ -78,7 +79,7 @@ const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
 )}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright(
 	"Press '?' or '/' for help."
 )}\n${magentaBright(
-	"Run 'tsfm help' for help, or 'tsfm -v' for version info."
+	"Run 'tsfm help' for help, or 'tsfm v' for version info."
 )}\n\ntsfm v${version}\n`;
 
 // Check if help flag is present

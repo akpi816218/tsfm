@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ! Make sure to change the version number in both package.json and src/index.ts
-const version = '2.3.0';
+const version = '2.3.2';
 // https://npmjs.com/package/npm-registry-fetch
 import fetch from 'npm-registry-fetch';
 // builtin
@@ -13,7 +13,8 @@ if (cmnd == 'version' || cmnd == 'v' || cmnd == '-v' || cmnd == '--version') {
         timeout: 5000
     })
         .catch(() => {
-        stdout.write('Failed to fetch version info from NPM') && exit(1);
+        stdout.write('Failed to fetch version info from NPM\n');
+        exit(1);
     }))['dist-tags'].latest}\n`);
     exit(0);
 }
@@ -31,7 +32,7 @@ if (argv.length == 3 && cmnd == 'cdc') {
     stdout.write(`${redBright('C')}${orangeBright('D')}${yellowBright('C')}${greenBright(':')} ${blueBright('C')}${purpleBright('e')}${redBright('n')}${orangeBright('t')}${yellowBright('r')}${greenBright('a')}${blueBright('l')} ${purpleBright('D')}${redBright('e')}${orangeBright('f')}${yellowBright('e')}${greenBright('c')}${blueBright('a')}${purpleBright('t')}${redBright('i')}${orangeBright('o')}${yellowBright('n')} ${greenBright('C')}${blueBright('e')}${purpleBright('n')}${redBright('t')}${orangeBright('e')}${yellowBright('r')}\n`);
     process.exit(0);
 }
-const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys, hjkl, or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright("Press '?' or '/' for help.")}\n${magentaBright("Run 'tsfm help' for help, or 'tsfm -v' for version info.")}\n\ntsfm v${version}\n`;
+const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright('Use arrow keys, hjkl, or WASD to navigate.')}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright("Press '?' or '/' for help.")}\n${magentaBright("Run 'tsfm help' for help, or 'tsfm v' for version info.")}\n\ntsfm v${version}\n`;
 // Check if help flag is present
 if (argv.length > 2 && cmnd == 'help') {
     stdout.write(helpText);
