@@ -14,7 +14,7 @@ npm i -g tsfm
 
 To use tsfm, simply run `tsfm`.
 
-For help, run `tsfm help` or press '/' or '?' while in the program.
+For help, run `tsfm help` or press `/` or `?` while in the program.
 
 ## Contributing
 
