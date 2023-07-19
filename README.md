@@ -16,6 +16,10 @@ npm i -g tsfm
 
 To use tsfm, simply run `tsfm`.
 
+```bash
+tsfm [directory] [--color | --no-color]
+```
+
 For help, run `tsfm help` or press `/` or `?` while in the program.
 
 ## Contributing

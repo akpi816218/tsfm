@@ -95,7 +95,7 @@ if (argv.length == 3 && cmnd == 'cdc') {
 	process.exit(0);
 }
 
-const helpText = `${redBright(`Usage: ${underline('tsfm')}`)}\n${yellowBright(
+const helpText = `${redBright(`Usage: ${underline('tsfm [directory] [--color | --no-color]')}`)}\n${yellowBright(
 	'Use arrow keys, hjkl, or WASD to navigate.'
 )}\n${greenBright('C-c, C-d, C-q, C-w, q, or escape to quit.')}\n${blueBright(
 	"Press '?' or '/' for help while in the program. Press 'p' when focused on a file to trash it."

@@ -8,7 +8,7 @@
 	},
 	"scripts": {
 		"build": "npx tsc",
-		"onPrepublishOnly": "npm run build",
+		"prepublishOnly": "npm run build",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "Akhil Pillai",
