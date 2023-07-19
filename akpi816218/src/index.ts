@@ -12,10 +12,10 @@ const cmnd = argv.length > 2 ? (`${argv[2].toLowerCase()}` as const) : null;
 
 if (cmnd == 'version' || cmnd == 'v' || cmnd == '-v' || cmnd == '--version') {
 	stdout.write(
-		`Fetching package info from NPM, stand by for up to 5 seconds...\n`
+		`Local installation is tsfm @${version}\nFetching package info from NPM, stand by for up to 5 seconds...\n`
 	);
 	stdout.write(
-		`Local installation is tsfm@${version}\ntsfm@latest version published on NPM: ${
+		`tsfm@latest version published on NPM: ${
 			(
 				(await fetch
 					.json('tsfm', {
