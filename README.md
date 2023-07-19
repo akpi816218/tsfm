@@ -1,6 +1,6 @@
 # tsfm
 
-A light TUI file manager written in TypeScript, with a focus on speed and ease of use. Integrated with feces-cli using @feces-cli/internals to enable quick file trashing.
+A light TUI file manager written in TypeScript, with a focus on speed and ease of use. Integrated with feces-cli using [`@feces-cli/internals`](https://npmjs.com/package/@feces-cli/internals) to enable quick file trashing.
 
 ## Installation
 
