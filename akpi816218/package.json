@@ -1,6 +1,6 @@
 {
 	"name": "tsfm",
-	"version": "2.3.2",
+	"version": "2.3.3",
 	"description": "A light TUI file manager written in TypeScript, with a focus on speed and ease of use. Integrated with @feces-cli/internals to enable quick file trashing.",
 	"type": "module",
 	"bin": {
@@ -8,6 +8,7 @@
 	},
 	"scripts": {
 		"build": "npx tsc",
+		"onPrepublishOnly": "npm run build",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "Akhil Pillai",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ! Make sure to change the version number in both package.json and src/index.ts
-const version = '2.3.2';
+const version = '2.3.3';
 // https://npmjs.com/package/npm-registry-fetch
 import fetch from 'npm-registry-fetch';
 // builtin
@@ -272,7 +272,8 @@ async function rightHandler() {
     }
     else if (selected.isFile()) {
         State.inFile = true;
-        boxContainer.setContent(highlight((await readFile(`${State.dir}/${State.currentFiles[State.selectedFile].name}`)).toString()));
+        const fileContent = (await readFile(`${State.dir}/${State.currentFiles[State.selectedFile].name}`)).toString();
+        boxContainer.setContent((fileContent.length * 2 + 2) > 128 * 1024 ? fileContent : await highlight(fileContent));
         listContainer.hide();
         boxContainer.show();
         win.render();

@@ -26,7 +26,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Credits
 
-- [Akhil Pillai](https://github.com/akhilpil) - author
+- [Akhil Pillai](https://github.com/akpi816218) - author
 - [blessed](https://github.com/chjj/blessed) - TUI library
 - [cli-highlight](https://github.com/felixfbecker/cli-highlight) - syntax highlighting
 - [@feces-cli/internals](https://github.com/feces-cli/internals) - file trashing
